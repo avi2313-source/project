@@ -1,0 +1,62 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [input, setInput] = useState('');
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState([]);
+
+  const handleSubmit = async () => {
+    setError(null);
+    setResponse(null);
+    try {
+      const data = JSON.parse(input);
+      const result = await axios.post('https://your-backend-url.herokuapp.com/bfhl', data);
+      setResponse(result.data);
+    } catch (err) {
+      setError('Invalid JSON input or request failed');
+    }
+  };
+
+  const handleFilterChange = (event) => {
+    const value = Array.from(event.target.selectedOptions, option => option.value);
+    setFilter(value);
+  };
+
+  const renderResponse = () => {
+    if (!response) return null;
+
+    const { numbers, alphabets, highest_alphabet } = response;
+
+    let filteredData = [];
+    if (filter.includes('Numbers')) filteredData = filteredData.concat(numbers);
+    if (filter.includes('Alphabets')) filteredData = filteredData.concat(alphabets);
+    if (filter.includes('Highest alphabet')) filteredData = filteredData.concat(highest_alphabet);
+
+    return <pre>{JSON.stringify(filteredData, null, 2)}</pre>;
+  };
+
+  return (
+    <div className="App">
+      <h1>Your Roll Number</h1>
+      <textarea
+        rows="10"
+        cols="50"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder='Enter JSON here...'
+      />
+      <button onClick={handleSubmit}>Submit</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <select multiple onChange={handleFilterChange}>
+        <option value="Numbers">Numbers</option>
+        <option value="Alphabets">Alphabets</option>
+        <option value="Highest alphabet">Highest alphabet</option>
+      </select>
+      <div>{renderResponse()}</div>
+    </div>
+  );
+}
+
+export default App;
